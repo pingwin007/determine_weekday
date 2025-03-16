@@ -2,7 +2,6 @@
 
 export(determine_weekday)
 importFrom(cli,cli_alert_danger)
-importFrom(lubridate,dmy)
-importFrom(lubridate,mdy)
-importFrom(lubridate,ymd)
+importFrom(lubridate,parse_date_time)
+importFrom(lubridate,wday)
 importFrom(stringr,str_trim)

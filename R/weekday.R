@@ -9,7 +9,7 @@
 #' Supported options: "en" (English), "fr" (French), "es" (Spanish).
 #'
 #' @return A character string representing the weekday.
-#' @importFrom lubridate ymd dmy mdy
+#' @importFrom lubridate parse_date_time wday
 #' @importFrom stringr str_trim
 #' @importFrom cli cli_alert_danger
 #' @export
@@ -23,40 +23,35 @@ determine_weekday <- function(date, language = "en") {
   # Load necessary libraries
   library(lubridate)
   library(stringr)
-  library(cli)
 
   # Clean and trim input
   date <- str_trim(as.character(date))
 
   # Attempt to parse multiple date formats
   parsed_date <- tryCatch({
-    if (!inherits(date, "Date")) {
-      ymd(date) %||% dmy(date) %||% mdy(date)
-    } else {
-      date
-    }
+    parse_date_time(date, orders = c("ymd", "dmy", "mdy"))
   }, error = function(e) {
-    cli_alert_danger("Invalid date format. Please provide a valid date string or Date object.")
+    warning("Date parsing failed. Ensure format like 'YYYY-MM-DD'.")
     return(NA)
   })
 
   # Handle invalid date values
   if (is.na(parsed_date)) {
-    cli_alert_danger("Date parsing failed. Ensure format like 'YYYY-MM-DD'.")
+    warning("Date parsing failed. Ensure format like 'YYYY-MM-DD'.")
     return(NA)
   }
 
   # Return the weekday with language support
   weekdays_list <- list(
-    en = weekdays,
-    fr = function(x) weekdays(x, abbreviate = FALSE, locale = "fr_FR"),
-    es = function(x) weekdays(x, abbreviate = FALSE, locale = "es_ES")
+    en = function(x) wday(x, label = TRUE, abbr = FALSE, locale = "English"),
+    fr = function(x) wday(x, label = TRUE, abbr = FALSE, locale = "French"),
+    es = function(x) wday(x, label = TRUE, abbr = FALSE, locale = "Spanish")
   )
 
   if (!language %in% names(weekdays_list)) {
-    cli_alert_danger("Unsupported language. Using default: English (en).")
+    warning("Unsupported language. Using default: English (en).")
     language <- "en"
   }
 
-  return(weekdays_list[[language]](parsed_date))
+  return(as.character(weekdays_list[[language]](parsed_date)))
 }
